@@ -1,0 +1,165 @@
+<?xml version="1.0"?>
+<robot name="tt" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- PROPERTY LIST -->
+    <xacro:property name="M_PI" value="3.1415926"/>
+
+
+    <material name="black">
+        <color rgba="0 0 0 0.95"/>
+    </material>
+    <material name="gray">
+        <color rgba="0.75 0.75 0.75 1"/>
+    </material>
+    
+
+    <!-- Macro for robot wheel -->
+    <xacro:macro name="wheel" params="prefix reflect">
+        <joint name="${prefix}_wheel_joint" type="continuous">
+            <origin xyz="0 ${-reflect*0.221} 0.056" rpy="${reflect*M_PI/2} 0 ${reflect*M_PI/2}"/>
+            <parent link="base_link"/>
+            <child link="${prefix}_wheel_link"/>
+            <axis xyz="${reflect} 0 0"/>
+        </joint>
+
+        <link name="${prefix}_wheel_link">
+            <inertial>
+              <origin xyz="0 0 0" rpy="0 0 0" />
+              <mass
+                value="1.9718" />
+              <inertia
+                ixx="0.007775"
+                ixy="0"
+                ixz="0"
+                iyy="0.0044318"
+                iyz="0"
+                izz="0.0044318" />
+            </inertial>
+            <visual>
+              <origin
+                xyz="0 0 0"
+                rpy="0 0 0" />
+              <geometry>
+                <mesh
+                  filename="package://tt_base_description/meshes/tt_link_${prefix}_wheel.STL" scale="1 1 1"/>
+              </geometry>
+              <material name="glack"/>
+            </visual>
+            <collision>
+              <origin
+                xyz="0 0 0"
+                rpy="0 0 0" />
+              <geometry>
+                <mesh
+                  filename="package://tt_base_description/meshes/tt_link_${prefix}_wheel.STL" scale="1 1 1"/>
+              </geometry>
+            </collision>
+        </link>
+
+        <gazebo reference="${prefix}_wheel_link">
+            <material>Gazebo/Gray</material>
+        </gazebo>
+
+        <!-- Transmission is important to link the joints and the controller -->
+        <transmission name="${prefix}_wheel_joint_trans">
+            <type>transmission_interface/SimpleTransmission</type>
+            <joint name="${prefix}_wheel_joint" >
+                <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            </joint>
+            <actuator name="${prefix}_wheel_joint_motor">
+                <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+                <mechanicalReduction>1</mechanicalReduction>
+            </actuator>
+        </transmission>
+    </xacro:macro>
+
+
+    <xacro:macro name="tt_base_gazebo">
+        <link name="base_footprint">
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <box size="0.001 0.001 0.001" />
+                </geometry>
+            </visual>
+        </link>
+        <gazebo reference="base_footprint">
+            <turnGravityOff>false</turnGravityOff>
+        </gazebo>
+
+        <joint name="base_footprint_joint" type="fixed">
+            <origin xyz="0 0 0.07" rpy="0 0 0" />        
+            <parent link="base_footprint"/>
+            <child link="base_link" />
+        </joint>
+
+        <link
+        name="base_link">
+            <inertial>
+              <origin
+                xyz="0 0 0.07"
+                rpy="0 0 0" />
+              <mass
+                value="55.9" />
+              <inertia
+                ixx="0.611701132100641"
+                ixy="6.84876194160263E-07"
+                ixz="-0.000344054161247601"
+                iyy="1.25166081836814"
+                iyz="-4.19098316162667E-08"
+                izz="1.76153613752974" />
+            </inertial>
+            <visual>
+              <origin
+                xyz="0 0 0"
+                rpy="0 0 0" />
+              <geometry>
+                <mesh filename="package://tt_base_description/meshes/tt_base_link.STL" scale="1 1 1"/>
+              </geometry>
+            <material name="gray"/>
+            </visual>
+            <collision>
+              <origin
+                xyz="0 0 0"
+                rpy="0 0 0" />
+              <geometry>
+                <mesh filename="package://tt_base_description/meshes/tt_base_link.STL" scale="1 1 1"/>
+              </geometry>
+            </collision>
+        </link>
+
+        <gazebo reference="base_link">
+            <material>Gazebo/Gray</material>
+        </gazebo>
+
+        <wheel prefix="left"  reflect="1"/>
+        <wheel prefix="right" reflect="-1"/>
+
+        <!-- controller -->
+        <gazebo>
+            <plugin name="differential_drive_controller" 
+                    filename="libgazebo_ros_diff_drive.so">
+                <rosDebugLevel>Debug</rosDebugLevel>
+                <publishWheelTF>true</publishWheelTF>
+                <robotNamespace></robotNamespace>
+                <publishTf>1</publishTf>
+                <publishWheelJointState>true</publishWheelJointState>
+                <alwaysOn>true</alwaysOn>
+                <updateRate>100.0</updateRate>
+                <legacyMode>true</legacyMode>
+                <leftJoint>left_wheel_joint</leftJoint>
+                <rightJoint>right_wheel_joint</rightJoint>
+                <wheelSeparation>0.442</wheelSeparation>
+                <wheelDiameter>0.166</wheelDiameter>
+                <broadcastTF>1</broadcastTF>
+                <wheelTorque>30</wheelTorque>
+                <wheelAcceleration>1.8</wheelAcceleration>
+                <commandTopic>cmd_vel</commandTopic>
+                <odometryFrame>odom</odometryFrame> 
+                <odometryTopic>odom</odometryTopic> 
+                <robotBaseFrame>base_footprint</robotBaseFrame>
+            </plugin>
+        </gazebo> 
+    </xacro:macro>
+
+</robot>

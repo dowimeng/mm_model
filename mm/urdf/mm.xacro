@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<robot name="mm" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find mm)/urdf/tt_15_description.xacro" />
+    <xacro:include filename="$(find mm)/urdf/SR3.urdf.xacro" />
+
+    <joint name="joint_mm" type="fixed">
+        <origin xyz="0 0 0.2" rpy="0 0 0" />
+        <parent link="base_link" />
+        <child link="base_link_SR3" />
+        <axis xyz="0 0 1" />
+    </joint>
+
+
+</robot>
